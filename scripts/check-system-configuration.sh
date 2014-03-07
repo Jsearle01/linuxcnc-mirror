@@ -67,35 +67,15 @@ check-rsyslog() {
 # Xenomai needs higher memlock ulimit than the default 64k
 #
 check-ulimits() {
-    local ulimit_conf=/etc/security/limits.d/linuxcnc.conf
-    # a guess at what a reasonable memlock value should be
     local reasonable_memlock=32767
-
-    # If $ulimit_conf exists, assume that the contents are correct
-    if test -f $ulimit_conf; then
-	return 0
-    fi
-
-    # Otherwise, look for a reasonable setting for memlock.
-    #
-    # Assumption: the 'memlock' setting comes from the last entry in
-    # these files, and <domain> and <type> fields are correct
-    export LC_COLLATE=C
-    memlock=0
-    for f in /etc/security/limits.conf /etc/security/limits.d/*.conf; do
-	test -f $f || continue
-	mtmp=$(awk '/^[^#]/ && $3=="memlock" {m=$4} END {print m}' $f)
-	test -n "$mtmp" && memlock=$mtmp
-    done
+    local memlock=$(ulimit -l)
     
     if ! test $memlock = unlimited -o \
 	$(($memlock>$reasonable_memlock)) = 1; then
-	echo "Warning:  $ulimit_conf does not exist, and a reasonable"
-	echo "          'memlock' value not found in configuration."
+	echo "Warning:  Max locked memory is $memlock but at least $reasonable_memlock is needed."
 	echo "          Please check the system configuration and correct."
-	echo "          Hint:  src/rtapi/shmdrv/limits.d-linuxcnc.conf may"
-	echo "          be a reasonable example to install in"
-	echo "          $ulimit_conf."
+	echo "          Hint:  src/rtapi/shmdrv/limits.d-linuxcnc.conf may be a"
+	echo "          reasonable example to install in /etc/security/limits.d"
 	echo
 	return 1
     fi
