@@ -67,11 +67,11 @@ check-rsyslog() {
 # Xenomai needs higher memlock ulimit than the default 64k
 #
 check-ulimits() {
-    local reasonable_memlock=32767
+    local reasonable_memlock=20480
     local memlock=$(ulimit -l)
     
     if ! test $memlock = unlimited -o \
-	$(($memlock>$reasonable_memlock)) = 1; then
+	$(($memlock>=$reasonable_memlock)) = 1; then
 	echo "Warning:  Max locked memory is $memlock but at least $reasonable_memlock is needed."
 	echo "          Please check the system configuration and correct."
 	echo "          Hint:  src/rtapi/shmdrv/limits.d-linuxcnc.conf may be a"
